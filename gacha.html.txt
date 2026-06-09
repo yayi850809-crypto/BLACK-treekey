@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑牙牙系轉蛋機</title>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Zen Maru Gothic', 'PingFang TC', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0b0b0e; /* 深邃暗黑背景 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ----------------------------------
+           背景：點陣發光星星（維持你最愛的那款）
+        ---------------------------------- */
+        .pixel-star-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .dot-matrix-star {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: #ffffff;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,1) 4px, transparent 4px), linear-gradient(0deg, rgba(0,0,0,1) 4px, transparent 4px);
+            -webkit-mask-size: 6px 6px;
+            mask-image: linear-gradient(90deg, rgba(0,0,0,1) 4px, transparent 4px), linear-gradient(0deg, rgba(0,0,0,1) 4px, transparent 4px);
+            mask-size: 6px 6px;
+            filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.85)) drop-shadow(0 0 25px rgba(255, 255, 255, 0.4));
+            opacity: 0.8;
+            animation: starFloatAndGlow linear infinite;
+        }
+
+        .dot-matrix-star.mini {
+            width: 35px;
+            height: 35px;
+            -webkit-mask-size: 4px 4px;
+            mask-size: 4px 4px;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9));
+        }
+
+        @keyframes starFloatAndGlow {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0.2; }
+            15% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+            85% { opacity: 0.9; }
+            100% { transform: translateY(-15vh) rotate(35deg); opacity: 0; }
+        }
+
+        /* ----------------------------------
+           標題樣式：分開一點、黑灰白漸層厚白邊
+        ---------------------------------- */
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 50px;
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            display: inline-block;
+        }
+
+        h1 span {
+            display: inline-block;
+            margin: 0 6px; 
+            background: linear-gradient(to bottom, #ffffff 0%, #a0a0a5 60%, #4a4a4f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            
+            filter: 
+                drop-shadow(3px 0px 0px #ffffff) 
+                drop-shadow(-3px 0px 0px #ffffff) 
+                drop-shadow(0px 3px 0px #ffffff) 
+                drop-shadow(0px -3px 0px #ffffff)
+                drop-shadow(2px 2px 0px #ffffff)
+                drop-shadow(-2px -2px 0px #ffffff)
+                drop-shadow(2px -2px 0px #ffffff)
+                drop-shadow(-2px 2px 0px #ffffff)
+                drop-shadow(0 0 15px rgba(255, 255, 255, 0.6));
+
+            animation: bounce-text 3s ease-in-out infinite alternate;
+        }
+
+        h1 span:nth-child(even) { transform: rotate(-3deg) translateY(3px); animation-delay: 0.3s; }
+        h1 span:nth-child(odd) { transform: rotate(3deg) translateY(-3px); animation-delay: 0.1s; }
+
+        @keyframes bounce-text {
+            0% { transform: translateY(0) rotate(-2deg); }
+            100% { transform: translateY(-6px) rotate(3deg); }
+        }
+
+        .pixel-tooth {
+            font-size: 2.4rem;
+            display: inline-block;
+            animation: tooth-float 2s ease-in-out infinite alternate;
+            filter: drop-shadow(2px 2px 0px #ffffff) drop-shadow(-2px -2px 0px #ffffff) drop-shadow(0 0 10px rgba(255,255,255,0.5));
+        }
+        .tooth-right { animation-delay: 0.5s; }
+
+        @keyframes tooth-float {
+            0% { transform: translateY(5px) rotate(-5deg); }
+            100% { transform: translateY(-8px) rotate(5deg); }
+        }
+
+        /* ----------------------------------
+           轉蛋機：酷炫黑灰白
+        ---------------------------------- */
+        .gacha-wrapper {
+            position: relative;
+            width: 380px;
+            height: 460px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-end;
+            z-index: 5;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .gacha-wrapper:hover { transform: scale(1.02); }
+        .jelly-shake { animation: jellyAnimation 0.6s ease-in-out; }
+
+        @keyframes jellyAnimation {
+            0% { transform: scale(1, 1); }
+            25% { transform: scale(1.12, 0.85) translateY(10px); }
+            50% { transform: scale(0.92, 1.08) translateY(-15px); }
+            75% { transform: scale(1.04, 0.96) translateY(3px); }
+            100% { transform: scale(1, 1) translateY(0); }
+        }
+
+        .gachapon-machine {
+            width: 290px;
+            height: 410px;
+            background: linear-gradient(135deg, #3a3a42 0%, #1c1c22 100%);
+            border: 7px solid #ffffff; 
+            border-radius: 30px;
+            position: relative;
+            box-shadow: 
+                inset -12px -12px 0px rgba(0,0,0,0.4),
+                inset 10px 10px 0px rgba(255,255,255,0.1),
+                0 20px 40px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 🌟 改動：移除大星星，改為頂部平滑的霓虹燈看板座 🌟 */
+        .top-light-bar {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            height: 45px;
+            background: linear-gradient(to bottom, #5c5c66, #2d2d35);
+            border: 6px solid #ffffff;
+            border-bottom: none;
+            border-radius: 25px 25px 0 0;
+            box-shadow: inset 4px 4px 0 rgba(220,220,220,0.15);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        /* 🌟 改動：加大、更明顯且更閃爍的繽紛霓虹燈泡 🌟 */
+        .neon-bulb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #1a1a22;
+            animation: bulbBlinkFast 0.35s infinite alternate;
+        }
+        /* 五顆明顯的炫彩燈泡（草莓粉、芒果黃、薄荷綠、天空藍、葡萄紫） */
+        .neon-bulb:nth-child(1) { background: #ff65a3; box-shadow: 0 0 15px #ff65a3; }
+        .neon-bulb:nth-child(2) { background: #ffea00; box-shadow: 0 0 15px #ffea00; animation-delay: 0.08s; }
+        .neon-bulb:nth-child(3) { background: #69f0ae; box-shadow: 0 0 15px #69f0ae; animation-delay: 0.16s; }
+        .neon-bulb:nth-child(4) { background: #7ae5ff; box-shadow: 0 0 15px #7ae5ff; animation-delay: 0.24s; }
+        .neon-bulb:nth-child(5) { background: #b185ff; box-shadow: 0 0 15px #b185ff; animation-delay: 0.32s; }
+
+        @keyframes bulbBlinkFast {
+            0% { opacity: 0.2; transform: scale(0.8); filter: brightness(0.6); }
+            100% { opacity: 1; transform: scale(1.2); filter: brightness(1.5) drop-shadow(0 0 8px rgba(255,255,255,0.8)); }
+        }
+
+        /* 黑白儀表板 */
+        .gauge-panel {
+            width: 90px;
+            height: 42px;
+            background: #ffffff;
+            border: 5px solid #1a1a22;
+            border-bottom: none;
+            border-radius: 50px 50px 0 0;
+            position: absolute;
+            top: -5px; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+        .gauge-needle {
+            width: 4px;
+            height: 28px;
+            background: #1a1a22; 
+            border-radius: 2px;
+            transform-origin: bottom center;
+            transform: rotate(-30deg);
+            animation: gauge-move 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes gauge-move {
+            0% { transform: rotate(-55deg); }
+            100% { transform: rotate(55deg); }
+        }
+
+        /* 玻璃櫥窗 */
+        .showcase {
+            width: 246px;
+            height: 175px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 60%);
+            border: 6px solid #ffffff;
+            border-radius: 20px;
+            margin-top: 55px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 15px 10px;
+            justify-content: center;
+            align-content: center;
+            gap: 8px;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 5px 5px 15px rgba(255,255,255,0.05), inset -5px -5px 15px rgba(0,0,0,0.5);
+        }
+
+        .showcase::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.15) 50%, transparent 55%);
+            pointer-events: none;
+        }
+
+        /* 黑灰白扭蛋球 */
+        .egg-in-machine {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2.5px solid #1a1a22;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset -4px -4px 6px rgba(0,0,0,0.3), inset 3px 3px 4px rgba(255,255,255,0.2);
+        }
+        .egg-in-machine::after {
+            content: '★';
+            position: absolute;
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            top: 2px; left: 8px;
+        }
+        .egg-color-1 { background: #ffffff; } 
+        .egg-color-2 { background: #8a8a95; } 
+        .egg-color-3 { background: #44444f; } 
+        .egg-color-4 { background: #1a1a22; } 
+
+        /* 控制基座面版 */
+        .control-panel {
+            width: 100%;
+            flex: 1;
+            background: linear-gradient(to bottom, #4a4a54, #25252c);
+            border-top: 6px solid #ffffff;
+            border-radius: 0 0 22px 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 12px 0;
+        }
+
+        /* 純白金屬旋鈕 */
+        .crank {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ffffff, #aaaaaa);
+            border: 5px solid #1a1a22;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #1a1a22, inset 4px 4px 0 rgba(255,255,255,0.4);
+        }
+        .crank::after {
+            content: '';
+            position: absolute;
+            width: 48px;
+            height: 14px;
+            background: #1a1a22;
+            top: 23px; left: 6px;
+            border-radius: 4px;
+        }
+        .crank:hover { transform: scale(1.06); }
+        .crank.spin { animation: spinCrankEffect 0.5s ease-out; }
+        @keyframes spinCrankEffect { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 出蛋口 */
+        .dispenser {
+            width: 85px;
+            height: 48px;
+            background: #09090c;
+            border-radius: 14px 14px 0 0;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.8);
+        }
+
+        /* 右側工業風黑灰煙囪 */
+        .chimney-pipe {
+            position: absolute;
+            right: 15px;
+            bottom: 30px;
+            width: 60px;
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .pipe-base {
+            width: 35px;
+            height: 45px;
+            background: #25252c;
+            border: 5px solid #ffffff;
+            border-top: none;
+            border-radius: 0 0 15px 0;
+            transform: translateX(-10px);
+        }
+
+        .pipe-body {
+            width: 55px;
+            height: 105px;
+            background: repeating-linear-gradient(#3a3a42, #3a3a42 12px, #1a1a22 12px, #1a1a22 18px);
+            border: 5px solid #ffffff;
+            border-radius: 15px 15px 5px 5px;
+        }
+
+        .smoke-bubble {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 50%;
+            opacity: 0.6;
+            pointer-events: none;
+            animation: riseSmokeAnimation 2.5s linear infinite;
+        }
+
+        @keyframes riseSmokeAnimation {
+            0% { transform: translateY(60px) scale(0.3); opacity: 0; }
+            12% { opacity: 0.6; }
+            75% { opacity: 0.2; }
+            100% { transform: translateY(-130px) translateX(25px) scale(1.4); opacity: 0; }
+        }
+
+        /* 結果彈窗 */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+
+        .result-card {
+            background: #1c1c22;
+            border: 6px solid #ffffff;
+            padding: 30px;
+            text-align: center;
+            border-radius: 26px;
+            box-shadow: 0 0 35px rgba(255, 255, 255, 0.2);
+            transform: scale(0.7);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 320px;
+        }
+        .overlay.show .result-card { transform: scale(1); }
+
+        .result-title { color: #ffffff; font-size: 1.6rem; margin-bottom: 15px; text-shadow: 2px 2px 0 #000; letter-spacing: 2px; }
+        .result-content { color: #ffffff; font-size: 1.2rem; margin-bottom: 25px; min-height: 50px; display: flex; align-items: center; justify-content: center; }
+        .close-btn { background: #ffffff; border: 4px solid #1a1a22; padding: 10px 25px; font-weight: bold; color: #1a1a22; cursor: pointer; border-radius: 14px; box-shadow: 0 4px 0 #8a8a95; }
+        .close-btn:active { transform: translateY(4px); box-shadow: none; }
+    </style>
+</head>
+<body>
+
+    <div class="pixel-star-container" id="starContainer"></div>
+
+    <div class="title-container">
+        <span class="pixel-tooth tooth-left">🦷</span>
+        <h1>
+            <span>黑</span><span>牙</span><span>牙</span><span>系</span><span>轉</span><span>蛋</span><span>機</span>
+        </h1>
+        <span class="pixel-tooth tooth-right">🦷</span>
+    </div>
+
+    <div class="gacha-wrapper" id="jellyWrapper">
+        <div class="gachapon-machine">
+            
+            <div class="top-light-bar">
+                <div class="neon-bulb"></div>
+                <div class="neon-bulb"></div>
+                <div class="neon-bulb"></div>
+                <div class="neon-bulb"></div>
+                <div class="neon-bulb"></div>
+            </div>
+
+            <div class="gauge-panel">
+                <div class="gauge-needle"></div>
+            </div>
+
+            <div class="showcase">
+                <div class="egg-in-machine egg-color-1"></div>
+                <div class="egg-in-machine egg-color-2"></div>
+                <div class="egg-in-machine egg-color-3"></div>
+                <div class="egg-in-machine egg-color-4"></div>
+                <div class="egg-in-machine egg-color-2"></div>
+                <div class="egg-in-machine egg-color-1"></div>
+                <div class="egg-in-machine egg-color-3"></div>
+                <div class="egg-in-machine egg-color-4"></div>
+                <div class="egg-in-machine egg-color-2"></div>
+                <div class="egg-in-machine egg-color-1"></div>
+            </div>
+            
+            <div class="control-panel">
+                <div class="crank" id="crankBtn" onclick="drawGachapon()"></div>
+                <div class="dispenser"></div>
+            </div>
+        </div>
+
+        <div class="chimney-pipe" id="chimney">
+            <div class="pipe-body"></div>
+            <div class="pipe-base"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="resultOverlay">
+        <div class="result-card">
+            <div class="result-title">⚡ 轉蛋結果 ⚡</div>
+            <div class="result-content" id="resultText">恭喜獲得神秘小禮物！</div>
+            <button class="close-btn" onclick="closePopup()">太棒了</button>
+        </div>
+    </div>
+
+    <script>
+        // 生成點陣發光星空背景
+        const container = document.getElementById('starContainer');
+        const starCount = 12;
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.classList.add('dot-matrix-star');
+            if (Math.random() > 0.5) star.classList.add('mini');
+            star.style.left = `${Math.random() * 95}vw`;
+            star.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            star.style.animationDelay = `${Math.random() * -10}s`;
+            container.appendChild(star);
+        }
+
+        // 煙囪冒煙
+        const chimney = document.getElementById('chimney');
+        setInterval(() => {
+            const bubble = document.createElement('div');
+            bubble.classList.add('smoke-bubble');
+            const size = Math.random() * 15 + 15;
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 20 + 15}px`;
+            bubble.style.top = `0px`;
+            chimney.appendChild(bubble);
+            setTimeout(() => { bubble.remove(); }, 2500);
+        }, 500);
+
+        // 預設內容物
+        const mockRewards = [
+            "🧸 隱藏版黑牙牙軟綿綿吊飾",
+            "🖤 惡魔翅膀暗黑系上衣",
+            "✨ 閃亮亮粉紅愛心眼妝",
+            "🐾 傲嬌貓咪像素尾巴",
+            "🦷 招牌黑牙牙像素胸章"
+        ];
+
+        let isDrawing = false;
+
+        function drawGachapon() {
+            if (isDrawing) return;
+            isDrawing = true;
+
+            const jellyWrapper = document.getElementById('jellyWrapper');
+            const crank = document.getElementById('crankBtn');
+            const overlay = document.getElementById('resultOverlay');
+            const resultText = document.getElementById('resultText');
+
+            crank.classList.add('spin');
+            jellyWrapper.classList.add('jelly-shake');
+
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * mockRewards.length);
+                resultText.innerText = mockRewards[randomIndex];
+                overlay.classList.add('show');
+            }, 600);
+        }
+
+        function closePopup() {
+            const jellyWrapper = document.getElementById('jellyWrapper');
+            const crank = document.getElementById('crankBtn');
+            const overlay = document.getElementById('resultOverlay');
+
+            overlay.classList.remove('show');
+            crank.classList.remove('spin');
+            jellyWrapper.classList.remove('jelly-shake');
+            
+            isDrawing = false;
+        }
+    </script>
+</body>
+</html>
